@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:5000';
-const DEVICE_ID = process.env.DEVICE_ID || 'station-001';
+const DEVICE_ID = process.env.DEVICE_ID || 'station-001-test';
 const TIMEZONE = process.env.TIMEZONE || 'Asia/Ho_Chi_Minh';
 
 /**
@@ -42,7 +42,7 @@ async function sendObservation(parameterCode, valueNumeric, unit) {
     rawPayload: JSON.stringify({ source: 'raspberry-pi', parameterCode, valueNumeric }),
   };
 
-  const res = await axios.post(`${API_BASE_URL}/api/IotObservation/push`, payload, {
+  const res = await axios.post(`${API_BASE_URL}/api/iotobservation/push`, payload, {
     timeout: 15000,
   });
   return res.data;
@@ -60,7 +60,7 @@ async function sendBatch(observations) {
     })),
   };
 
-  const res = await axios.post(`${API_BASE_URL}/api/IotObservation/batch`, batchPayload, {
+  const res = await axios.post(`${API_BASE_URL}/api/iotobservation/batch`, batchPayload, {
     timeout: 15000,
   });
   return res.data;
