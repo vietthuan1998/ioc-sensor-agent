@@ -11,7 +11,9 @@ const TIMEZONE = process.env.TIMEZONE || 'Asia/Ho_Chi_Minh';
  * de dam bao idempotency key duoc tao ra dung quy tac va khong bi trung lap
  */
 function nowIso8601() {
-  return new Date().toISOString();
+  const now = new Date();
+   const vietnamTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+  return vietnamTime.toISOString().replace('Z', '+07:00');
 }
 /**
  * tao idempotency key de dam bao request khong bi trung lap khi gui len server
