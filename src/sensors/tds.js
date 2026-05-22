@@ -33,17 +33,7 @@ async function readTDS(address = 0x4a, busNumber = 1, temperature = 25.0) {
       - 255.86 * Math.pow(compensatedVoltage, 2)
       + 857.39 * compensatedVoltage) * 0.5).toFixed(2)
   );
-console.log(`TDS: ${tds} ppm`);
-    console.log('TDS voltage:', averageVoltage.toFixed(6), 'V');
   return { tds: Math.max(0, tds) };
-}
-
-if (require.main === module) {
-  readTDS()
-    .then(({ tds }) => {console.log(`TDS: ${tds} ppm`);
-    console.log('TDS voltage:', averageVoltage.toFixed(6), 'V');
-})
-    .catch(err => console.error('Lỗi đọc TDS:', err));
 }
 
 module.exports = { readTDS };

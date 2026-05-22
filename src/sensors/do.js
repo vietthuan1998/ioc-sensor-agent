@@ -1,7 +1,7 @@
 // DO đọc qua ADS1115 kênh A1
 // Đơn vị: mg/L
 // Công thức phụ thuộc module DO, thường: DO = voltage * factor
-
+// Hiện tại chưa đủ thiết bị tạm thời chưa thử nghiệm
 const Ads1x15 = require('ads1x15');
 
 const GAIN = 4096;

@@ -5,23 +5,55 @@ const { readDS18B20 } = require('./sensors/ds18b20');
 const { readPH } = require('./sensors/ph');
 const { readDO } = require('./sensors/do');
 const { readTDS } = require('./sensors/tds');
-const { sendBatch } = require('./api');
+const { sendObservation, sendBatch } = require('./api');
 
-const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '60000', 10);
+const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '2000', 10);
 const SHT31_ADDRESS = parseInt(process.env.SHT31_ADDRESS || '0x44', 16);
 const ADS1115_ADDRESS = parseInt(process.env.ADS1115_ADDRESS || '0x48', 16);
 const I2C_BUS = parseInt(process.env.I2C_BUS || '1', 10);
 const PH_OFFSET = parseFloat(process.env.PH_CALIBRATION_OFFSET || '0');
 const PH_SLOPE = parseFloat(process.env.PH_CALIBRATION_SLOPE || '1');
 const TDS_TEMPERATURE = parseFloat(process.env.TDS_TEMPERATURE || '25');
+const SHT31_DEVICE_ID = process.env.SHT31_DEVICE_ID || process.env.DEVICE_ID;
+const DS18B20_DEVICE_ID = process.env.DS18B20_DEVICE_ID || process.env.DEVICE_ID;
+const PH_DEVICE_ID = process.env.PH_DEVICE_ID || process.env.DEVICE_ID;
+const DO_DEVICE_ID = process.env.DO_DEVICE_ID || process.env.DEVICE_ID;
+const TDS_DEVICE_ID = process.env.TDS_DEVICE_ID || process.env.DEVICE_ID;
 
 function log(msg) {
-  console.log(`[${new Date().toISOString()}] ${msg}`);
+  const now = new Date();
+  console.log(`[${new Date(now.getTime() + 7 * 60 * 60 * 1000).toISOString().replace('Z', '+07:00')}] ${msg}`);
 }
-const observations = [];
-async function collectAndSendSHT31() {
-  log('Bắt đầu đọc cảm biến...');
-  // const observations = [];
+
+async function sendSensorObservations(sensorName, deviceId, observations) {
+  if (observations.length === 0) {
+    log(`[WARN] ${sensorName}: Không có dữ liệu để gửi`);
+    return;
+  }
+
+  // Đang test nên chưa gửi dữ liệu lên server.
+  // Nếu cảm biến chỉ có 1 giá trị thì gửi bằng sendObservation.
+  // Nếu cảm biến có 2 giá trị thì gửi bằng sendBatch.
+  try {
+    if (observations.length === 1) {
+      const { parameterCode, valueNumeric, unit } = observations[0];
+  //     const res = await sendObservation(deviceId, parameterCode, valueNumeric, unit);
+      // log(`${sensorName}: Gửi thành công 1 chỉ số. Response: ${JSON.stringify(res)}`);
+      log(`${sensorName}: Gửi thành công 1 chỉ số. Response: { deviceId: ${deviceId}, parameterCode: ${parameterCode}, valueNumeric: ${valueNumeric}, unit: ${unit} }`);
+
+      return;
+    }
+
+    // const res = await sendBatch(deviceId, observations);
+    // log(`${sensorName}: Gửi batch thành công ${observations.length} chỉ số. Response: ${JSON.stringify(res)}`);
+    log(`${sensorName}: Gửi batch thành công ${observations.length} chỉ số. Response: { deviceId: ${deviceId}, observations: ${JSON.stringify(observations)} }`);
+  } catch (err) {
+    log(`[ERROR] ${sensorName}: Gửi dữ liệu thất bại: ${err.message}`);
+  }
+}
+
+async function collectSHT31() {
+  const observations = [];
 
   // SHT31 — nhiệt độ và độ ẩm ngoài trời
   try {
@@ -32,8 +64,13 @@ async function collectAndSendSHT31() {
   } catch (err) {
     log(`[WARN] SHT31 lỗi: ${err.message}`);
   }
+
+  return observations;
 }
-async function collectAndSendDS18B20() {
+
+async function collectDS18B20() {
+  const observations = [];
+
   // DS18B20 — nhiệt độ nước
   try {
     const { waterTemperature } = await readDS18B20();
@@ -42,8 +79,13 @@ async function collectAndSendDS18B20() {
   } catch (err) {
     log(`[WARN] DS18B20 lỗi: ${err.message}`);
   }
+
+  return observations;
 }
-async function collectAndSendpH() {
+
+async function collectPH() {
+  const observations = [];
+
   // pH
   try {
     const { ph } = await readPH(ADS1115_ADDRESS, I2C_BUS, PH_OFFSET, PH_SLOPE);
@@ -52,8 +94,13 @@ async function collectAndSendpH() {
   } catch (err) {
     log(`[WARN] pH lỗi: ${err.message}`);
   }
+
+  return observations;
 }
-async function collectAndSendDO() {
+
+async function collectDO() {
+  const observations = [];
+
   // DO
   try {
     const { dissolvedOxygen } = await readDO(ADS1115_ADDRESS, I2C_BUS);
@@ -62,8 +109,13 @@ async function collectAndSendDO() {
   } catch (err) {
     log(`[WARN] DO lỗi: ${err.message}`);
   }
+
+  return observations;
 }
-async function collectAndSendTDS() {
+
+async function collectTDS() {
+  const observations = [];
+
   // TDS
   try {
     const { tds } = await readTDS(ADS1115_ADDRESS, I2C_BUS, TDS_TEMPERATURE);
@@ -72,29 +124,27 @@ async function collectAndSendTDS() {
   } catch (err) {
     log(`[WARN] TDS lỗi: ${err.message}`);
   }
+
+  return observations;
 }
 async function sendData() {
-  // collectAndSendSHT31();
-  // collectAndSendDS18B20();
-  // collectAndSendpH();
-  // collectAndSendDO();
-  await collectAndSendTDS();
+  log('Bắt đầu đọc cảm biến...');
 
-  // if (observations.length === 0) {
-  //   log('[WARN] Không có dữ liệu để gửi');
-  //   return;
-  // }
+  const sensorReads = [
+    // ['SHT31', SHT31_DEVICE_ID, collectSHT31],
+    ['DS18B20', DS18B20_DEVICE_ID, collectDS18B20],
+    ['pH', PH_DEVICE_ID, collectPH],
+    // ['DO', DO_DEVICE_ID, collectDO],
+    ['TDS', TDS_DEVICE_ID, collectTDS],
+  ];
 
-  // Gửi batch lên server
-  // try {
-  //   const res = await sendBatch(observations);
-  //   log(`Gửi thành công: ${observations.length} chỉ số. Response: ${JSON.stringify(res)}`);
-  // } catch (err) {
-  //   log(`[ERROR] Gửi dữ liệu thất bại: ${err.message}`);
-  // }
+  for (const [sensorName, deviceId, collect] of sensorReads) {
+    const observations = await collect();
+    await sendSensorObservations(sensorName, deviceId, observations);
+  }
 }
 // Chạy ngay lần đầu, sau đó lặp theo chu kỳ
 sendData();
-// setInterval(sendData, POLL_INTERVAL_MS);
+setInterval(sendData, POLL_INTERVAL_MS);
 
 log(`Ứng dụng khởi động. Chu kỳ gửi: ${POLL_INTERVAL_MS / 1000}s`);
