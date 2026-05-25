@@ -25,7 +25,6 @@ function log(msg) {
   console.log(`[${new Date(now.getTime() + 7 * 60 * 60 * 1000).toISOString().replace('Z', '+07:00')}] ${msg}`);
 }
 
-
 async function sendSensorObservations(sensorName, deviceId, observations) {
   if (observations.length === 0) {
     log(`[WARN] ${sensorName}: Không có dữ liệu để gửi`);
