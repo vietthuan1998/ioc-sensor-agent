@@ -36,14 +36,14 @@ async function sendSensorObservations(sensorName, deviceId, observations) {
     if (observations.length === 1) {
       const { parameterCode, valueNumeric, unit } = observations[0];
       // const res = await sendObservation(deviceId, parameterCode, valueNumeric, unit);
-      log(`${sensorName}: Gửi thành công 1 chỉ số. Response: ${JSON.stringify(res)}`);
+      // log(`${sensorName}: Gửi thành công 1 chỉ số. Response: ${JSON.stringify(res)}`);
       log(`${sensorName}: Gửi thành công 1 chỉ số. Response: { deviceId: ${deviceId}, parameterCode: ${parameterCode}, valueNumeric: ${valueNumeric}, unit: ${unit} }`);
 
       return;
     }
     // const res = await sendBatch(deviceId, observations);
     //sensorName, deviceId, observations
-    log(`${sensorName}: Gửi batch thành công ${observations.length} chỉ số. Response: ${JSON.stringify(res)}`);
+    // log(`${sensorName}: Gửi batch thành công ${observations.length} chỉ số. Response: ${JSON.stringify(res)}`);
     log(`${sensorName}: Gửi batch thành công ${observations.length} chỉ số. Response: { deviceId: ${deviceId}, observations: ${JSON.stringify(observations)} }`);
   } catch (err) {
     log(`[ERROR] ${sensorName}: Gửi dữ liệu thất bại: ${err.message}`);
