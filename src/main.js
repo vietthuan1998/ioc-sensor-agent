@@ -42,9 +42,9 @@ async function sendSensorObservations(sensorName, deviceId, observations) {
       // console.log('unit',unit);
       // console.log('deviceId',deviceId);
       // console.log('sensorName',sensorName,'========\n');
-  //     const res = await sendObservation(deviceId, parameterCode, valueNumeric, unit);
+      // const res = await sendObservation(deviceId, parameterCode, valueNumeric, unit);
       // log(`${sensorName}: Gửi thành công 1 chỉ số. Response: ${JSON.stringify(res)}`);
-      log(`${sensorName}: Gửi thành công 1 chỉ số. Response: { deviceId: ${deviceId}, parameterCode: ${parameterCode}, valueNumeric: ${valueNumeric}, unit: ${unit} }`);
+      // log(`${sensorName}: Gửi thành công 1 chỉ số. Response: { deviceId: ${deviceId}, parameterCode: ${parameterCode}, valueNumeric: ${valueNumeric}, unit: ${unit} }`);
 
       return;
     }
@@ -63,7 +63,7 @@ async function collectSHT31() {
   // SHT31 — nhiệt độ và độ ẩm ngoài trời
   try {
     const { temperature, humidity } = await readSHT31(SHT31_ADDRESS, I2C_BUS);
-    // log(`SHT31 → Nhiệt độ: ${temperature}°C, Độ ẩm: ${humidity}%`);
+    log(`SHT31 → Nhiệt độ: ${temperature}°C, Độ ẩm: ${humidity}%`);
     observations.push({ parameterCode: 'temperature', valueNumeric: temperature, unit: 'degC' });
     observations.push({ parameterCode: 'humidity', valueNumeric: humidity, unit: 'percent' });
   } catch (err) {
@@ -79,7 +79,7 @@ async function collectDS18B20() {
   // DS18B20 — nhiệt độ nước
   try {
     const { waterTemperature } = await readDS18B20();
-    // log(`DS18B20 → Nhiệt độ nước: ${waterTemperature}°C`);
+    log(`DS18B20 → Nhiệt độ nước: ${waterTemperature}°C`);
     observations.push({ parameterCode: 'nhietdo', valueNumeric: waterTemperature, unit: 'degC' });
   } catch (err) {
     log(`[WARN] DS18B20 lỗi: ${err.message}`);
@@ -94,10 +94,10 @@ async function collectPH() {
   // pH
   try {
     const { ph } = await readPH(ADS1115_ADDRESS, I2C_BUS, PH_OFFSET, PH_SLOPE);
-    // log(`pH → ${ph}`);
-    observations.push({ parameterCode: 'pH', valueNumeric: ph, unit: '' });
-  } catch (err) {
-    log(`[WARN] pH lỗi: ${err.message}`);
+    log(`pH → ${ph}`);
+    observations.push({ parameterCode: 'pH', valueNumeric: ph, unit: 'pH' });
+  } catch (error) {
+    log(`[WARN] pH lỗi: ${error.message}`);
   }
 
   return observations;
@@ -109,7 +109,7 @@ async function collectDO() {
   // DO
   try {
     const { dissolvedOxygen } = await readDO(ADS1115_ADDRESS, I2C_BUS);
-    // log(`DO → ${dissolvedOxygen} mg/L`);
+    log(`DO → ${dissolvedOxygen} mg/L`);
     observations.push({ parameterCode: 'dissolvedOxygen', valueNumeric: dissolvedOxygen, unit: 'mgL' });
   } catch (err) {
     log(`[WARN] DO lỗi: ${err.message}`);
@@ -123,7 +123,7 @@ async function collectTDS() {
   // TDS
   try {
     const { tds } = await readTDS(ADS1115_ADDRESS, I2C_BUS, TDS_TEMPERATURE);
-    // log(`TDS → ${tds} ppm`);
+    log(`TDS → ${tds} ppm`);
     observations.push({ parameterCode: 'tds', valueNumeric: tds, unit: 'ppm' });
   } catch (err) {
     log(`[WARN] TDS lỗi: ${err.message}`);
@@ -135,7 +135,7 @@ async function sendData() {
   log('Bắt đầu đọc cảm biến...');
 
   const sensorReads = [
-    // ['SHT31', SHT31_DEVICE_ID, collectSHT31],
+    ['SHT31', SHT31_DEVICE_ID, collectSHT31],
     ['DS18B20', DS18B20_DEVICE_ID, collectDS18B20],
     ['pH', PH_DEVICE_ID, collectPH],
     // ['DO', DO_DEVICE_ID, collectDO],
@@ -149,6 +149,6 @@ async function sendData() {
 }
 // Chạy ngay lần đầu, sau đó lặp theo chu kỳ
 sendData();
-setInterval(sendData, POLL_INTERVAL_MS);
+// setInterval(sendData, POLL_INTERVAL_MS);
 
 log(`Ứng dụng khởi động. Chu kỳ gửi: ${POLL_INTERVAL_MS / 1000}s`);

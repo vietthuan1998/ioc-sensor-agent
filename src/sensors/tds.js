@@ -10,7 +10,7 @@ const SPS = 250;
 const CHANNEL = 0;
 const SCOUNT = 30;
 
-async function readTDS(address = 0x4a, busNumber = 1, temperature = 25.0) {
+async function readTDS(address = 0x48, busNumber = 1, temperature = 25.0) {
   const adc = new Ads1x15(ADS1115, address);
   await adc.openBus(busNumber);
 

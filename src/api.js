@@ -5,9 +5,7 @@ const TIMEZONE = process.env.TIMEZONE || 'Asia/Ho_Chi_Minh';
 
 // Hàm để lấy thời gian hiện tại theo định dạng ISO 8601 với múi giờ Việt Nam
 function nowIso8601() {
-  const now = new Date();
-  const vietnamTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
-  return vietnamTime.toISOString().replace('Z', '+07:00');
+  return new Date().toISOString();
 }
 
 // Hàm tạo idempotency key duy nhất cho mỗi quan sát
@@ -27,7 +25,7 @@ async function sendObservation(deviceId, parameterCode, valueNumeric, unit) {
     idempotencyKey: makeIdempotencyKey(deviceId, parameterCode, observationTime),
     rawPayload: JSON.stringify({ source: 'raspberry-pi', deviceId, parameterCode, valueNumeric }),
   };
-
+  console.log(`Gửi quan sát: ${JSON.stringify(payload)}`);
   const res = await axios.post(`${API_BASE_URL}/api/iotobservation/push`, payload, {
     timeout: 15000,
   });
