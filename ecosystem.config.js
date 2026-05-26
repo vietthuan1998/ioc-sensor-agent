@@ -3,15 +3,15 @@ module.exports = {
     {
       name: 'ioc-sensor-agent',
       script: 'src/main.js',
-      cwd: '/home/raspi/Project/ioc-sensor-agent',
+      cwd: './current',
       env_file: '.env',
       watch: false,
       autorestart: true,
       max_restarts: 10,
       min_uptime: '5s',
       log_date_format: 'YYYY-MM-DD HH:mm:ss',
-      out_file: '/home/raspi/Project/ioc-sensor-agent/logs/sensor-agent-out.log',
-      error_file: '/home/raspi/Project/ioc-sensor-agent/logs/sensor-agent-err.log',
+      out_file: '../logs/sensor-agent-out.log',
+      error_file: '../logs/sensor-agent-err.log',
       merge_logs: true,
     },
   ],
@@ -27,10 +27,8 @@ deploy: {
 
       path: '/home/raspi/Project/ioc-sensor-agent',
 
-       'post-setup': 'git clone https://github.com/vietthuan1998/ioc-sensor-agent.git .',
-
       'post-deploy':
-        'git fetch --all && git reset --hard origin/main && npm install && pm2 reload ecosystem.config.js',
+        'cd current && npm install && pm2 reload ecosystem.config.js --env production',
     },
   },
 };
