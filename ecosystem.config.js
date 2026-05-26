@@ -27,8 +27,10 @@ deploy: {
 
       path: '/home/raspi/Project/ioc-sensor-agent',
 
+       'post-setup': 'git clone https://github.com/vietthuan1998/ioc-sensor-agent.git .',
+
       'post-deploy':
-        'npm install && pm2 reload ecosystem.config.js',
+        'git fetch --all && git reset --hard origin/main && npm install && pm2 reload ecosystem.config.js',
     },
   },
 };
