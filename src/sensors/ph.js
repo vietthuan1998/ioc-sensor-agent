@@ -33,7 +33,7 @@ async function readPH(address = 0x48, busNumber = 1, offset = 0.0, slope = 1.0) 
   const voltage = (sumMv / SAMPLE_COUNT) / 1000;
 
   // Công thức tham khảo module SEN0161: pH = 3.5 * voltage + offset
-  const ph = parseFloat((slope * (3.5 * voltage) + offset).toFixed(2));
+  const ph = parseFloat((slope * voltage + offset).toFixed(2));
 
   return { ph: Math.max(0, Math.min(14, ph)) };
 }
